@@ -74,20 +74,20 @@ class Roc_Auc_Callback(Callback):
 
     def on_epoch_end(self, epoch, logs={}):
         global epoch_idx
-        y_pred = self.model.predict([self.x1, self.x2], verbose=0)
-        train_roc = roc_auc_score(self.y, y_pred)
+        #y_pred = self.model.predict([self.x1, self.x2], verbose=0)
+        #train_roc = roc_auc_score(self.y, y_pred)
         y_pred_val = self.model.predict([self.x1_val, self.x2_val], verbose=0)
         val_roc = roc_auc_score(self.y_val, y_pred_val)
 
-        train_loss = logs.get('loss')
+        #train_loss = logs.get('loss')
         val_loss = logs.get('val_loss')
         nsml.report(
             summary=True,
             step=epoch_idx,
             scope=locals(),
             **{
-                "train__epoch_score": float(train_roc),
-                "train__epoch_loss": float(train_loss),
+                #"train__epoch_score": float(train_roc),
+                #"train__epoch_loss": float(train_loss),
                 "valid__epoch_score": float(val_roc),
                 "valid__epoch_loss": float(val_loss),
             })
