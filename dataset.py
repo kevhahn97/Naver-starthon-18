@@ -37,7 +37,6 @@ class Dataset():
         with open(data_file_path) as f:
             data = f.read().splitlines()
             data = [line.split("\t") for line in data]
-            print(data)
             _, a_seqs, b_seqs = list(zip(*data))
 
             # texts
