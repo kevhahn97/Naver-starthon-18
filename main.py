@@ -19,8 +19,8 @@ from dataset import Dataset
 from tokenizer import Tokenizer
 
 EP = 50
-LR = 0.001
-BATCH_SIZE = 128
+LR = 0.005
+BATCH_SIZE = 256
 MAX_SEQ = 64
 VOCAB_SIZE = 2000
 EMBEDDING_DIM = 128
@@ -176,7 +176,7 @@ if __name__ == "__main__":
             valid_data.input2,
             valid_data.labels
         )
-        early_stopping = EarlyStopping(monitor='val_loss', mode='min', patience=1)
+        early_stopping = EarlyStopping(monitor='val_loss', mode='min', patience=4)
         model.model.fit(
             x=[train_data.input1, train_data.input2], 
             y=train_data.labels, 
@@ -185,4 +185,4 @@ if __name__ == "__main__":
             callbacks=[my_callback, early_stopping],
             validation_data=([valid_data.input1, valid_data.input2], valid_data.labels)
             )
-        nsml.save('final')
+        
