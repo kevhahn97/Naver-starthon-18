@@ -91,6 +91,7 @@ class Roc_Auc_Callback(Callback):
                 "valid__epoch_score": float(val_roc),
                 "valid__epoch_loss": float(val_loss),
             })
+        nsml.save(str(epoch_idx))
         epoch_idx += 1
         return
 
@@ -184,3 +185,4 @@ if __name__ == "__main__":
             callbacks=[my_callback, early_stopping],
             validation_data=([valid_data.input1, valid_data.input2], valid_data.labels)
             )
+        nsml.save('final')
