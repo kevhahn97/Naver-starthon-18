@@ -18,22 +18,22 @@ from nsml import DATASET_PATH
 from dataset import Dataset
 from tokenizer import Tokenizer
 
-EP = 11
+EP = 50
 LR = 0.001
 BATCH_SIZE = 128
 MAX_SEQ = 32
-VOCAB_SIZE = 2000
-EMBEDDING_DIM = 128
+VOCAB_SIZE = 10000
+EMBEDDING_DIM = 200
 epoch_idx = 1
 
 
 def bind_model(model):
     def save(path, *args, **kwargs):
         # save the model with 'checkpoint' dictionary.
-        model.model.save(os.path.join(path, 'model'))
+        model.model.save_weights(os.path.join(path, 'model'))
 
     def load(path, *args, **kwargs):
-        model = keras.models.load_model(os.path.join(path, 'model'))
+        model.model.load_weights(os.path.join(path, 'model'))
         return model
 
     def infer(path, **kwargs):
@@ -52,9 +52,9 @@ def inference(path, model, config, **kwargs):
         max_sequence_len=MAX_SEQ
     )
     
-    pred_val = model.model.predict([data.input1, data.input2]).tolist()
-    pred_results = [[step, val] for step, val in enumerate(pred_val)]
-    return pred_results
+    pred_val = model.model.predict([data.input1, data.input2])
+    pred_val = np.squeeze(pred_val)
+    return pred_val
 
 
 class Roc_Auc_Callback(Callback):
@@ -100,17 +100,18 @@ class Model():
         embedding_layer = Embedding(VOCAB_SIZE, EMBEDDING_DIM)
         emb1 = embedding_layer(input1)
         emb2 = embedding_layer(input2)
-        x1 = LSTM(128, dropout=0.7, return_sequences=True)(emb1)
+        x1 = LSTM(200, dropout=0.7)(emb1)
         #x1 = LSTM(256, dropout=0.7, return_sequences=True)(x1)
-        x1 = LSTM(128, dropout=0.7)(x1)
-        x2 = LSTM(128, dropout=0.7, return_sequences=True)(emb2)
+        #x1 = LSTM(128, dropout=0.7)(x1)
+        x2 = LSTM(200, dropout=0.7)(emb2)
         #x2 = LSTM(256, dropout=0.7, return_sequences=True)(x2)
-        x2 = LSTM(128, dropout=0.7)(x2)
+        #x2 = LSTM(128, dropout=0.7)(x2)
         feature = keras.layers.concatenate([x1,x2])
-        #feature = Dense(256)(feature)
-        #feature = BatchNormalization()(feature)
-        #feature = Activation('relu')(feature)
-        output = Dense(2, activation='sigmoid')(feature)
+        feature = Dense(400)(feature)
+        feature = BatchNormalization()(feature)
+        feature = Activation('relu')(feature)
+        feature = Dropout(0.5)(feature)
+        output = Dense(1, activation='sigmoid')(feature)
         self.model = keras.models.Model(inputs=[input1, input2], outputs=output)
 
         """self.model = Sequential([
