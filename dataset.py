@@ -2,7 +2,6 @@ import os
 
 import nsml
 
-from keras.utils import np_utils
 from keras.preprocessing import sequence
 import numpy as np
 
@@ -54,8 +53,6 @@ class Dataset():
         if label_file_path:
             with open(label_file_path) as f:
                 labels = f.read().splitlines()
-                labels = [int(label) for label in labels]
-
-            self.labels = np_utils.to_categorical(labels)
+                self.labels = [int(label) for label in labels]
         else:
             self.labels = None
