@@ -2,7 +2,7 @@ import sentencepiece as spm
 import nsml
 import os
 
-NSML_SESSION = 'team_220/18_tcls_query/27'
+NSML_SESSION = 'team_220/18_tcls_query/58'
 
 class Tokenizer():
     def __init__(self, vocab_size, data_dir, mode):
