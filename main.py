@@ -18,22 +18,19 @@ from nsml import DATASET_PATH
 from dataset import Dataset
 from tokenizer import Tokenizer
 
-EP = 50
-LR = 0.005
-BATCH_SIZE = 256
-MAX_SEQ = 64
+EP = 11
+LR = 0.001
+BATCH_SIZE = 128
+MAX_SEQ = 32
 VOCAB_SIZE = 2000
 EMBEDDING_DIM = 128
 epoch_idx = 1
 
-# Make tokenizer
-tokenizer = Tokenizer(VOCAB_SIZE, DATASET_PATH)
 
 def bind_model(model):
     def save(path, *args, **kwargs):
         # save the model with 'checkpoint' dictionary.
-        
-        model.model.save(os.path.join(path, 'model'))    
+        model.model.save(os.path.join(path, 'model'))
 
     def load(path, *args, **kwargs):
         model = keras.models.load_model(os.path.join(path, 'model'))
@@ -55,7 +52,7 @@ def inference(path, model, config, **kwargs):
         max_sequence_len=MAX_SEQ
     )
     
-    pred_val = model.model.predict(data).tolist()
+    pred_val = model.model.predict([data.input1, data.input2]).tolist()
     pred_results = [[step, val] for step, val in enumerate(pred_val)]
     return pred_results
 
@@ -103,10 +100,16 @@ class Model():
         embedding_layer = Embedding(VOCAB_SIZE, EMBEDDING_DIM)
         emb1 = embedding_layer(input1)
         emb2 = embedding_layer(input2)
-        x1 = LSTM(256, dropout=0.7)(emb1)
-        x2 = LSTM(256, dropout=0.7)(emb2)
+        x1 = LSTM(128, dropout=0.7, return_sequences=True)(emb1)
+        #x1 = LSTM(256, dropout=0.7, return_sequences=True)(x1)
+        x1 = LSTM(128, dropout=0.7)(x1)
+        x2 = LSTM(128, dropout=0.7, return_sequences=True)(emb2)
+        #x2 = LSTM(256, dropout=0.7, return_sequences=True)(x2)
+        x2 = LSTM(128, dropout=0.7)(x2)
         feature = keras.layers.concatenate([x1,x2])
-        #feature = Dense(256, activation='relu')(feature)
+        #feature = Dense(256)(feature)
+        #feature = BatchNormalization()(feature)
+        #feature = Activation('relu')(feature)
         output = Dense(2, activation='sigmoid')(feature)
         self.model = keras.models.Model(inputs=[input1, input2], outputs=output)
 
@@ -145,6 +148,9 @@ if __name__ == "__main__":
     model = Model(LR)
     bind_model(model)
 
+    # Make tokenizer
+    tokenizer = Tokenizer(VOCAB_SIZE, DATASET_PATH, config.mode)
+
     if config.pause:
         nsml.paused(scope=locals())
 
@@ -176,13 +182,14 @@ if __name__ == "__main__":
             valid_data.input2,
             valid_data.labels
         )
-        early_stopping = EarlyStopping(monitor='val_loss', mode='min', patience=4)
+        #early_stopping = EarlyStopping(monitor='val_loss', mode='min', patience=6)
         model.model.fit(
             x=[train_data.input1, train_data.input2], 
             y=train_data.labels, 
             epochs=EP, 
             batch_size=BATCH_SIZE, 
-            callbacks=[my_callback, early_stopping],
+            #callbacks=[my_callback, early_stopping],
+            callbacks=[my_callback],
             validation_data=([valid_data.input1, valid_data.input2], valid_data.labels)
             )
         
